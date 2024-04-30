@@ -15,7 +15,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         file_path = settings.BASE_DIR
 
-        with open(f'{file_path}/recipes/data/ingredients.json', encoding='utf-8') as f:
+        with open(
+            f'{file_path}/recipes/data/ingredients.json',
+            encoding='utf-8'
+        ) as f:
             jsondata = json.load(f)
             tags_data = [
                 {'name': 'Завтрак', 'color': '#E26C2D', 'slug': 'breakfast'},
