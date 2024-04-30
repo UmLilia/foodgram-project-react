@@ -2,12 +2,14 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Favorite, Ingredients, IngredientsRecipe, Recipes,
-                            ShoppingCart, Tags)
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from recipes.models import (Favorite, Ingredients, IngredientsRecipe, Recipes,
+                            ShoppingCart, Tags)
 from users.models import Subscriptions, User
 
 from .filters import IngredientFilter, RecipeFilter
@@ -54,6 +56,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class SubscribeView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, id):
         data = {
             'user': request.user.id,
@@ -70,14 +74,11 @@ class SubscribeView(APIView):
 
     def delete(self, request, id):
         author = get_object_or_404(User, id=id)
-        if Subscriptions.objects.filter(
-           user=request.user, author=author).exists():
-            subscription = get_object_or_404(
-                Subscriptions, user=request.user, author=author
-            )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        subscription = get_object_or_404(
+            Subscriptions, user=request.user, author=author
+        )
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SubscriptionsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -91,6 +92,8 @@ class SubscriptionsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FavoriteView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, id):
         data = {
             'user': request.user.id,
@@ -118,6 +121,8 @@ class FavoriteView(APIView):
 
 
 class ShoppingCartView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, id):
         data = {
             'user': request.user.id,
@@ -147,6 +152,7 @@ class ShoppingCartView(APIView):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def download_shopping_cart(request):
     ingredient_list = "Cписок покупок:"
     ingredients = IngredientsRecipe.objects.filter(
