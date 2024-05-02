@@ -25,8 +25,10 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context.get("request").user
-        return False if user.is_anonymous else\
-            user.user.filter(author=obj).exists()
+        return (
+            user.subscriptions.filter(author=obj).exists()
+            and not user.is_anonymous
+        )
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -80,14 +82,18 @@ class RecipesSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         user = request.user
-        return False if request is None or user.is_anonymous else\
+        return (
             user.favorite.filter(recipe_id=obj).exists()
+            and request is not None and not user.is_anonymous
+        )
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         user = request.user
-        return False if request is None or user.is_anonymous else\
+        return (
             user.shopping_cart.filter(recipe_id=obj).exists()
+            and request is not None and not user.is_anonymous
+        )
 
 
 class ShowRecipesSeriallizer(serializers.ModelSerializer):
@@ -198,12 +204,11 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        recipes = Recipes.objects.filter(author=obj)
-        limit = request.query_params.get('recipes_limit')
-        if limit:
-            recipes = recipes[:int(limit)]
-        else:
-            recipes = recipes[:int(DEFAULT_RECIPES_LIMIT)]
+        limit = request.query_params.get(
+            'recipes_limit',
+            DEFAULT_RECIPES_LIMIT
+        )
+        recipes = Recipes.objects.filter(author=obj)[:int(limit)]
         return ShowRecipesSeriallizer(
             recipes,
             many=True,

@@ -1,4 +1,3 @@
-import logging
 import json
 
 from django.conf import settings
@@ -13,28 +12,25 @@ class Command(BaseCommand):
         parser.add_argument("--path", type=str, help="file path")
 
     def handle(self, *args, **options):
-        file_path = settings.BASE_DIR
-
-        with open(
-            f'{file_path}/recipes/data/ingredients.json',
-            encoding='utf-8'
-        ) as f:
-            jsondata = json.load(f)
-            tags_data = [
-                {'name': 'Завтрак', 'color': '#E26C2D', 'slug': 'breakfast'},
-                {'name': 'Обед', 'color': '#49B64E', 'slug': 'lunch'},
-                {'name': 'Ужин', 'color': '#8775D2', 'slug': 'dinner'}
-            ]
-            try:
-                Tags.objects.bulk_create(Tags(**tag) for tag in tags_data)
-            except Exception as error:
-                logging.error({error})
-            if 'measurement_unit' in jsondata[0]:
-                for line in jsondata:
-                    if not Ingredients.objects.filter(
-                       name=line['name'],
-                       measurement_unit=line['measurement_unit']).exists():
-                        Ingredients.objects.bulk_create([Ingredients(
-                            name=line['name'],
-                            measurement_unit=line['measurement_unit']
-                        )])
+        tags = f'{settings.BASE_DIR}/recipes/data/tags.json'
+        ingredients = f'{settings.BASE_DIR}/recipes/data/ingredients.json'
+        with open(tags, encoding='utf-8') as t:
+            jsondata = json.load(t)
+            for line in jsondata:
+                if not Tags.objects.filter(slug=line['slug']).exists():
+                    Tags.objects.bulk_create([Tags(
+                        name=line['name'],
+                        color=line['color'],
+                        slug=line['slug'],
+                    )])
+        with open(ingredients, encoding='utf-8') as i:
+            jsondata = json.load(i)
+            for line in jsondata:
+                if not Ingredients.objects.filter(
+                    name=line['name'],
+                    measurement_unit=line['measurement_unit']
+                ).exists():
+                    Ingredients.objects.bulk_create([Ingredients(
+                        name=line['name'],
+                        measurement_unit=line['measurement_unit']
+                    )])
