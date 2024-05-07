@@ -2,14 +2,13 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import (Favorite, Ingredients, IngredientsRecipe, Recipes,
+                            ShoppingCart, Tags)
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from recipes.models import (Favorite, Ingredients, IngredientsRecipe, Recipes,
-                            ShoppingCart, Tags)
 from users.models import Subscriptions, User
 
 from .filters import IngredientFilter, RecipeFilter
@@ -85,10 +84,7 @@ class SubscriptionsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = SubscribeSerializer
 
     def get_queryset(self):
-        new_queryset = Subscriptions.objects.filter(
-            user=self.request.user
-        )
-        return new_queryset
+        return Subscriptions.objects.filter(user=self.request.user)
 
 
 class FavoriteView(APIView):
