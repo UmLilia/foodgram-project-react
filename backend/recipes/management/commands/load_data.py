@@ -16,21 +16,13 @@ class Command(BaseCommand):
         ingredients = f'{settings.BASE_DIR}/recipes/data/ingredients.json'
         with open(tags, encoding='utf-8') as t:
             jsondata = json.load(t)
+            tag_list = []
             for line in jsondata:
-                if not Tags.objects.filter(slug=line['slug']).exists():
-                    Tags.objects.bulk_create([Tags(
-                        name=line['name'],
-                        color=line['color'],
-                        slug=line['slug'],
-                    )])
+                tag_list.append(Tags(**line))
+            Tags.objects.bulk_create(tag_list)
         with open(ingredients, encoding='utf-8') as i:
             jsondata = json.load(i)
+            ingredients_list = []
             for line in jsondata:
-                if not Ingredients.objects.filter(
-                    name=line['name'],
-                    measurement_unit=line['measurement_unit']
-                ).exists():
-                    Ingredients.objects.bulk_create([Ingredients(
-                        name=line['name'],
-                        measurement_unit=line['measurement_unit']
-                    )])
+                ingredients_list.append(Ingredients(**line))
+            Ingredients.objects.bulk_create(ingredients_list)
